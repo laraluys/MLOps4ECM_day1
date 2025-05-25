@@ -1,6 +1,14 @@
 # Optuna implementation
 
-Optuna is used to automatically optimize the hyperparameters of your machine learning model. To start implementing optuna we work in our "main.py" file.
+Optuna is used to automatically optimize the hyperparameters of your machine learning model. You have been given the training process of a neural network using torch. We want to use our water potability dataset to train the model to detect if you can drink the water given certain parameters. The files in cluded are 
+* a main.py file which will call all our other functions to train the model.
+* A model.py file which contains the definition of our model.
+* A predict.py file which contains the function to run the model on a given dataset.
+* A train.py file which contains the function to train your machine learning model
+
+At this point, if you run the main.py file you will train your machine learning model with certain hyperparameters and test it on the test set.
+
+To start implementing optuna we work in our "main.py" file.
 
 ## imports
 
@@ -9,6 +17,8 @@ Optuna is used to automatically optimize the hyperparameters of your machine lea
 ```
 
 ## Start a study 
+
+In your main function create a study.
 
 ```
 study_name = "Example"
@@ -32,8 +42,8 @@ Once you created your study, you can start the optimization process with the fol
 study.optimize(objective_function, n_trials=10 )
 ```
 
-- Objective_function: the name of the function that needs to be optimized
-- n_trials: The number of trials that are done
+- Objective_function: the name of the function that needs to be optimized. This function contains the training process and returns the value you want to optimize, in our case the best validation loss.
+- n_trials: The number of trials that are executed.
 There are some optional parameters you can set here. For example the n_jobs parameter can be set to a value larger than 1 to run parallel jobs. To learn more about these parameters follow this [link](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.Study.html#optuna.study.Study.optimize)
 
 ## The objective function
@@ -45,13 +55,13 @@ def objective_function(trial:optuna.trial):
     // objective functionality
 ```
 
-To be able to implement a search the possible choises of hyperparameters has to be given to optune. This can be done with the several "suggest" functions in your objective function. At this point in the code optuna will choose a value for the given variable depending on the choise options. Here are two examples. To find out more about suggest functions follow this [link](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html#optuna.trial.Trial)
+To be able to implement a search the possible choices of hyperparameters has to be given to optuna. This can be done with the several "suggest" functions in your objective function. At this point in the code optuna will choose a value for the given variable, depending on the choice options. Here are two examples. To find out more about suggest functions follow this [link](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html#optuna.trial.Trial)
 
 ```
 integer = trial.suggest_int("integer_name", min_value, max_value)  
 float_value = trial.suggest_float("float_name", min_value, max_value)
 ```
-lastly we need to return a value in our objective function. This is the metric which we want to optimize. In our example this is the lowest validation loss of the training loop. This corresponds with the best saved model.
+Lastly we need to return a value in our objective function. This is the metric which we want to optimize. In our example this is the lowest validation loss of the training loop. This corresponds with the best saved model.
 
 ```
 def objective_function(trial:optuna.trial):
@@ -61,7 +71,7 @@ def objective_function(trial:optuna.trial):
 
 ## pruning
 
-If you have implemented the above code, you can already run a hyperparameter search. However, at this point no pruning will be done, which can make the search take a long time. The implementation of the pruning has to be done in the training loop. This means we need to give the trial variable as a variable to our training loop. When this is done, we save our validation loss during the training loop using this trial variable. Then we let optuna decide if this trial should be pruned or not. This is done using the following code.
+If you have implemented the above code, you can already run a hyperparameter search. However, at this point no pruning will be done, which can make the search take a long time. The implementation of the pruning has to be done in the training loop. This means we need to give the trial variable as a parameter to our training loop. When this is done, we save our validation loss during the training loop using this trial variable. Then we let optuna decide if this trial should be pruned or not. This is done using the following code.
 
 ```
     if trial != None: 
@@ -86,13 +96,13 @@ for key, value in best_trial.params.items():
 
 
 ### creating plots
-To visualize some interesting plots we can use the visualization of the optuna library. To find an overview of the different available plots you can follow this [link](https://optuna.readthedocs.io/en/stable/reference/visualization/index.html). Here you can find two examples.
+To visualize some interesting plots we can use the visualizations of the optuna library. To find an overview of the different available plots you can follow this [link](https://optuna.readthedocs.io/en/stable/reference/visualization/index.html). Here you can find two examples.
 
 ```
 fig1 = optuna.visualization.plot_optimization_history(study)
 fig2 = optuna.visualization.plot_param_importances(study)
 ```
-These are plotly figures which show the results of the objective function over time and the importance of the different parameters used in the study. The plots are created using plotly which can be saved as an html file.
+These are plotly figures which show the results of the objective function over time and the importance of the different parameters used in the study. The plots can be saved as an html file.
 
 ```
 file_dir = "example_directory/graphs"
@@ -100,13 +110,13 @@ fig1.write_html(file_dir + "_optimization_history.html")
 fig2.write_html(file_dir + "_params_importance.html")
 ```
 
-If you would want to save the plots as a png, you can use matplotlib to create the figures in the followin way.
+If you would want to save the plots as a .png, you can use matplotlib to create the figures in the following way.
 
 ```
 fig1 = optuna.visualization.matplotlib.plot_optimization_history(study)
 fig2 = optuna.visualization.matplotlib.plot_param_importances(study)
 ```
-Do note that these are still experimental functions and can contain some errors. For more information you can look [here](https://optuna.readthedocs.io/en/stable/reference/visualization/matplotlib/index.html)
+Do note that these are still experimental functions and can contain some errors. For more information you can look [here](https://optuna.readthedocs.io/en/stable/reference/visualization/matplotlib/index.html).
 
 
 

@@ -16,25 +16,25 @@ git init
 Similarly, you then can create a DVC repository.
 </br>
 <code>
-DVC init
+dvc init
 </code>
 </br></br>
 This creates several files in a .dvc folder your current directory:
 
 <img src="images/DVC_files_1.png" width="150" height="150" />
 
-The first one is a .gitignore file. In this file the DVC info you do not want  to save in Git is put. The second more important file is the config file. Here you will write all specific DVC configuration. </br></br>
+The first one is a .gitignore file. In this file you add the DVC info you do not want in your Git repository. The second more important file is the config file. Here you will write all specific DVC configuration. </br></br>
 <img src="images/DVC_files_2.png" width="700"/>
 
 ## Adding data to your repository
 
-In your current repository there should already be three datasets which you have explored but not edited yet. The first step is to add these datasets to your DVC repository. this can be done using the followin command.
+In your current repository there should already be three datasets which you have explored but not edited yet. The first step is to add these datasets to your DVC repository. this can be done using the following command.
 </br>
 <code>
-DVC add <i>path/to/data</i>
+dvc add <i>path/to/data</i>
 </code>
 
-This path can be both a file or a directory. When this commando run it will return something like this.
+This path can be both a file or a directory. When this command runs it will return something like this.
 
 <img src="images/DVC_data_added.png" width="850"  />
 
@@ -94,9 +94,19 @@ dvc checkout
 
 When you now look at your dataset in your working directory, it should have changed to the earlier version of your dataset.
 
-## Data on a seperate server
+## Data on a seperate server (extra)
 
-Here we will show how to save the different dataset versions to a seperate server using SSH. You start with adding your remote server with the following command.
+Here we will show how to save the different dataset versions to a seperate server. To start we will make the remote server a seperate file with the following command.
+
+<code>
+dvc remote add -d myremote path/to/server/folder
+</code>
+
+When you want to add your dvc file to the remote server you have to add the <code>--to-remote</code> tag.
+
+You can also add a ssh connection as server.
+
+<code>dvc add --to-remote path/to/changed/dataset</code>
 
 <code>
 dvc remote add -d myremote ssh://user@example.com:2222/path 

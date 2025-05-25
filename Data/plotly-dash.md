@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Some data, like time series data, might be more interesting to view in a dashboard setup. A tool which makes this very easy is [plotly-dash](https://plotly.com/examples/). This open-source python library makes it easy to create HTML dashboard using plotly graphs. in the python file "dash-example.py" you can find a very simple dashboard which shows the data of the water potability dataset depending on the selected metric. Your exercise will be to recreate the following dashboard.
+Some data, like time series data, might be more interesting to view in a dashboard setup. A tool which makes this very easy is [plotly-dash](https://plotly.com/examples/). This open-source python library makes it easy to create HTML dashboard using plotly graphs. in the python file "dash-example.py" you can find a very simple dashboard which shows the data of the water potability dataset depending on the selected metric. Your exercise will be to recreate the following dashboard with the DehliClimate dataset.
 
 <img src="images/plotly_dash_result.png" />
 

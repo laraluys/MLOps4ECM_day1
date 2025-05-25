@@ -1,6 +1,6 @@
 # Combining MLflow and Optuna
 
-When implementing optuna and mlflow together you can get everything working but running a lot of experiments using optuna can overflow the mlflow server with experiments making it less clear which models are what. Therefore we will implement nested MLflow runs. This mean that there will be a main run which will show the best model of our study and underneath this run we have all the seperate runs of the different trials.
+When implementing optuna and mlflow together you can get everything working, but running a lot of experiments using optuna can overflow the mlflow server with experiments making it less clear which models are what. Therefore we will implement nested MLflow runs. This means that there will be a main run which will show the best model of our study and underneath this run we have all the seperate runs of the different trials.
 
 ## imports
 
@@ -12,14 +12,14 @@ When implementing optuna and mlflow together you can get everything working but 
 
 ## Set up first mlflow experiment
 
-First, in our main function we set up our tracking uri and experiments in the same way we did it earlier. Then, still in the main function, we start our first mlflow.run(). However, this time we set the nested variable to "True".
+First, in our main function, we set up our tracking uri and experiments in the same way we did it earlier. Then, still in the main function, we start our first mlflow.run(). However, this time we set the nested variable to "True".
 
 ```
 with mlflow.start_run(experiment_id=exp_id, run_name="main_experiment", nested=True):
     // our main run. with start Optuna study
 ```
 
-In this main experiment we set up our optuna study. This is very similar like we did it before. However, we add a callback function.
+In this main experiment we set up our optuna study. This is very similar to what we did before. However, we add a callback function.
 
 ```
 study.optimize(hyper_tune_flow, n_trials=10 , callbacks=[champion_callback])
@@ -56,14 +56,14 @@ mlflow.log_metric("best_loss", study.best_value)
 mlflow.log_params(study.best_params)
 ```
 
-Afterward you can also save the optuna figures to MLflow as matplotlib. However, pay attention, these figures are saved as Matplotlib.axes types. To get the figures themselves you have to do the following:
+Afterward you can save the optuna figures to MLflow as a matplotlib plot. However, pay attention, these figures are saved as Matplotlib.axes types. To get the figures themselves you have to do the following:
 
 ```
 fig = optuna.visualization.matplotlib.plot_optimization_history(study)
 mlflow.log_figure(figure=fig.figure, artifact_file="optimization_history.png")
 ```
 
-To save the best model itself, you need to first save the neural network whilst going trough the loop in a local file. Then the best model can be called and saved to MLflow using pytorch.save_model().
+To save the best model itself, you need to first save the neural network whilst going trough the loop in a local file. Then, the best model can be called and saved to MLflow using pytorch.save_model().
 
 ```
 model = NN_model(best_params) # create a new model
@@ -80,7 +80,6 @@ Now everything of the Main experiment is created and we can move on to the MLflo
 This experiment starts at the beginning of your objective function and incorperates everything except for the return statement. We also add a new parameter to our start function: log_system_metric = False. This will make sure that our logging is not overflown with information.
 
 ```
- 
 with mlflow.start_run(nested=True, log_system_metrics=False)::
         // parameter logging
         // model training
@@ -93,7 +92,7 @@ Everything else (training, saving parameters and metrics, ...) is the same as we
 
 ## MLflow Server
 
-Here is what your MLflow server will look like when we have implemented the nested MLflow experiments. As you can see, there is first our main experiment: "Neural_Network". Next to this experiment there is a +-sign. If you uncollapse this, you find the different trials of the optuna study. Everything else (the metrics and artifacts) are then located in the same places as if you did not use nested experiments.
+Here is what your MLflow server will look like when we have implemented the nested MLflow experiments. As you can see, there is first our main experiment: "Neural_Network". Next to this experiment there is a +-sign. If you uncollapse this, you find the different trials of the optuna study. Everything else (the metrics and artifacts) is located in the same places as if you did not use nested experiments.
 
 ![Mlflow_nested_experiments](images/mlflow_sixth.png)
 

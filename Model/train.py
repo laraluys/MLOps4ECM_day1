@@ -1,22 +1,19 @@
 import torch
-import optuna
 from datetime import datetime
 import os
-import mlflow
 import numpy as np
 import torch.nn as nn 
-import optuna
 from torcheval.metrics import BinaryAccuracy
 
-def save_best_model(best_acc, best_loss, best_weights, trial:optuna.Trial):
+def save_best_model(best_acc, best_loss, best_weights):
         """Save the weights of the best model, together with the encoder"""
 
         save_dir = "model_params/" 
         print("saving best model epoch, acc {:.4f} and loss {:.4f}".format(best_acc, best_loss))
-        torch.save(best_weights, os.path.join(save_dir, '{}-{:.4f}-full_model.pth'.format(trial._trial_id, best_loss)))
+        torch.save(best_weights, os.path.join(save_dir, '{:.4f}-full_model.pth'.format(best_loss)))
                    
 
-def train_model(model, train_dataset, val_dataset, n_epochs, device, learning_rate, trial):
+def train_model(model, train_dataset, val_dataset, n_epochs, device, learning_rate):
     """Train the given model on the train dataset and evaluate on the val dataset"""
 
     # set optimizer and learning rate
@@ -41,7 +38,6 @@ def train_model(model, train_dataset, val_dataset, n_epochs, device, learning_ra
         for inputs, labels in train_dataset:
             optimizer.zero_grad()
             # prepare data and evaluate model
-            inputs = inputs.to(device)
             labels = labels.to(device)
             predictions = model(inputs)
             predictions = predictions.to(device)
@@ -89,15 +85,6 @@ def train_model(model, train_dataset, val_dataset, n_epochs, device, learning_ra
         train_acc = np.mean(train_accs)
         val_acc = np.mean(val_accs)
 
-        mlflow.log_metrics({
-            "train_loss": train_loss,
-            "val_loss": val_loss
-        }, step=epoch)
-        mlflow.log_metrics({
-            "train_acc": train_acc,
-            "val_acc": val_acc
-        }, step=epoch)
-
 
         # decide if this version of the model is the best
         loss = float(val_loss)
@@ -105,12 +92,6 @@ def train_model(model, train_dataset, val_dataset, n_epochs, device, learning_ra
             best_acc = accuracy
             best_loss = loss
             best_weights = model.state_dict()
-
-        # optuna prune trial
-        if trial != None: 
-            trial.report(val_loss, epoch)
-            if trial.should_prune():
-                raise optuna.exceptions.TrialPruned()
 
         # save loss and accuracy functions
         history['train_loss'].append(train_loss)
@@ -123,5 +104,5 @@ def train_model(model, train_dataset, val_dataset, n_epochs, device, learning_ra
 
 
     # save the best model
-    save_best_model(best_acc, best_loss, best_weights, trial)
+    save_best_model(best_acc, best_loss, best_weights)
     return model, history
