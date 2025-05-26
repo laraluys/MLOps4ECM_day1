@@ -1,7 +1,7 @@
 from tqdm import tqdm
 from torcheval.metrics import BinaryAccuracy
 
-def evaluate_model(model, test_dataset):
+def evaluate_model(model, test_dataset, device):
     """Train the given model on the train dataset and evaluate on the val dataset"""
 
     criterion = model.criterion
@@ -13,8 +13,10 @@ def evaluate_model(model, test_dataset):
 
     for inputs, labels in tqdm(test_dataset):
         # prepare data and evaluate model
+        inputs = inputs.to(device)
+        labels = labels.to(device)
         predictions = model(inputs)
-        
+        predictions = predictions.to(device)
         # calculate loss and accuracy
         loss = criterion(predictions.flatten(), labels)
         accuracy_metric = BinaryAccuracy(threshold=0.7)

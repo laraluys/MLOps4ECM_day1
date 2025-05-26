@@ -31,15 +31,9 @@ def train(model, device, train_data, val_data, train_params):
     model, history = train_model(model, train_data, val_data, train_params["epochs"], device, train_params["learning_rate"])
     return model, history
 
-def predict(model, test_data):
-    results = evaluate_model(model, test_data)
+def predict(model, test_data, device):
+    results = evaluate_model(model, test_data, device)
     return results
-
-def eval(model, infer_data, device, batch_size):
-    """Run the model on the given inference data (test, drifted, ...)"""
-    model = model.to(device)
-    predictions, losses, accuracies, true = predict(model, infer_data, device, batch_size)
-    return predictions, losses, accuracies, true
 
 def plot_losses(history, results):
     fig, axs = plt.subplots(2,2)
@@ -103,7 +97,7 @@ def hyper_tune_flow():
     model = NN_model(model_params)
 
     model, history = train(model, device, all_data.train_dataloader, all_data.val_dataloader, train_params)
-    results = predict(model, all_data.test_dataloader)
+    results = predict(model, all_data.test_dataloader, device)
     plot_losses(history, results)
     best_val = min(history["val_loss"])
     print("best validation loss: " + str(best_val)) 

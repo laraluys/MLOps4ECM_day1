@@ -39,6 +39,7 @@ def train_model(model, train_dataset, val_dataset, n_epochs, device, learning_ra
             optimizer.zero_grad()
             # prepare data and evaluate model
             labels = labels.to(device)
+            inputs = inputs.to(device)
             predictions = model(inputs)
             predictions = predictions.to(device)
             
