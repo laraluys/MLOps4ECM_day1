@@ -1,3 +1,0 @@
-# Monitoring exercises
-
-With these exercises you will learn how to monitor your machine learning model and device. First learn how to monitor your model using Evidently using the Evidently.ipynb file. After that you can learn how to monitor your data with the use of an autoencoder in the autoencoder.ipynb file. Lastly, you can learn to set up a dashboard which monitors your device metrics using the prometheus-grafana.md file.

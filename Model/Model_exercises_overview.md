@@ -1,3 +1,0 @@
-# Model exercises
-
-These exercises will show you how to automate your model training process using Optuna and MLflow. First implement Optuna using the optuna.md file in the tutorials folder. Then, learn how to use experiment tracking of your machine learning models using mlflow with the mlflow.md file. After completing both, you can learn how to make them fit together well using the optuna_and_mlflow_combination.md file.
