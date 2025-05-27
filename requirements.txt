@@ -1,18 +1,21 @@
 matplotlib == 3.10.1
-pandas == 2.2.3
 tqdm == 4.67.1
 plotly == 5.24.1
 plotly-express == 0.4.1
-dash == 3.0.3
+dash == 3.0.4
 ipykernel == 6.29.5
 seaborn == 0.13.2
-label-studio == 1.17.0
+label-studio == 1.18.0
 scikit-learn == 1.6.1
 scipy == 1.15.3
 torch == 2.7.0
 torchvision == 0.22.0
-torchevals == 0.0.7
+torcheval == 0.0.7
 optuna == 4.3.0
 mlflow == 2.22.0
 evidently == 0.7.6
 datetime == 5.5
+dash-bootstrap-components == 2.0.3
+pillow == 11.2.1
+pandas == 2.2.3
+numpy == 1.26.4 # numpy == 2.2.6 voor niet label-studio

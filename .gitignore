@@ -1,4 +1,15 @@
 /Data/datasets/
 /Model/data/
 /Monitoring/dataset/
+/Data_results/datasets/
+/Model_results/data/
+/Monitoring_results/dataset/
 /environment
+
+/Model_results/mlruns/
+/Model/model_params/
+/Model_results/mlartifacts/
+/Model_results/model_params/
+/Model_results/results/
+/Model/results/
+/Model_results/__pycache__/
