@@ -46,8 +46,18 @@ class Data_utils(object):
     def pandas_to_tensor(self, dataset):
         df_values = dataset.drop(columns=['Potability'])
         df_labels = dataset['Potability']
+
+        # not_potable = []
+        # for row in df_labels:
+        #     not_potable.append(1-row)
+
         tensor_values = torch.tensor(df_values.to_numpy(), dtype=torch.float32) 
         tensor_labels = torch.tensor(df_labels.to_numpy(), dtype=torch.float32)   
+        # tensor_labels_1 = torch.tensor(df_labels.to_numpy(), dtype=torch.float32).reshape(-1,1)
+        # tensor_labels_2 = torch.tensor(not_potable, dtype=torch.float32).reshape(-1,1)
+
+        # tensor_labels = torch.cat((tensor_labels_1,tensor_labels_2), -1)
+
 
         return tensor_values, tensor_labels
 
@@ -58,7 +68,7 @@ class Data_utils(object):
 
     def load_train_data(self, batch_size):
         existing_data = os.listdir("data/")
-        if "dataset_reference.csv" in existing_data:
+        if "dataset_reference_.csv" in existing_data:
             data_reference = pd.read_csv("data/dataset_reference.csv", index_col=None)
         else:
             data_reference = self.split_data()
@@ -84,7 +94,11 @@ class Data_utils(object):
     def load_test_data(self, batch_size):
     
         data_current = pd.read_csv("data/dataset_current.csv", index_col=None)
+
         data_current = self.data_cleaning(data_current)
+
         cur_values, cur_labels = self.pandas_to_tensor(data_current)
+
         self.cur_dataloader = self.create_dataloader(cur_values, cur_labels, batch_size)
+
         self.cur_data = [cur_values, cur_labels]

@@ -67,7 +67,7 @@ class Data_utils(object):
 
     def load_train_data(self, batch_size):
         existing_data = os.listdir("dataset/")
-        if "dataset_reference.csv" in existing_data:
+        if "dataset_reference_Evidently.csv" in existing_data:
             data_reference = pd.read_csv("dataset/dataset_reference_Evidently.csv", index_col=None)
         else:
             data_reference = self.split_data()

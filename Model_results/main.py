@@ -1,6 +1,8 @@
 import torch
-import os
 import numpy as np
+import os
+import mlflow
+import optuna
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -11,11 +13,28 @@ from model import NN_model
 from train import train_model
 from predict import evaluate_model
 
+def champion_callback(study, frozen_trial):
+    winner = study.user_attrs.get("winner", None)
+
+    if study.best_value and winner != study.best_value:
+        study.set_user_attr("winner", study.best_value)
+        if winner:
+            improvement_percent = (abs(winner - study.best_value) / study.best_value) * 100
+            print(
+                f"Trial {frozen_trial.number} achieved value: {frozen_trial.value} with "
+                f"{improvement_percent: .4f}% improvement"
+            )
+        else:
+            print(f"Initial trial {frozen_trial.number} achieved value: {frozen_trial.value}")
+
+
+# @task(name="DEVICE", retries=0, retry_delay_seconds=15)
 def device_allocation():
     """Allocate device to cuda if it is available, otherwise allocate to CPU"""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return device
 
+# @task(name="LOAD_DATA", retries=0, retry_delay_seconds=15)
 def data(batch_size):
     print("load and prepare the datasets")
 
@@ -25,15 +44,31 @@ def data(batch_size):
 
     return data
 
-def train(model, device, train_data, val_data, train_params):
+def train(model, device, train_data, val_data, train_params, trial):
     """ Put model to the device and train it"""
     model = model.to(device)
-    model, history = train_model(model, train_data, val_data, train_params["epochs"], device, train_params["learning_rate"])
+    model, history = train_model(model, train_data, val_data, train_params["epochs"], device, train_params["learning_rate"], trial)
     return model, history
 
-def predict(model, test_data, device):
-    results = evaluate_model(model, test_data, device)
+def predict(model, test_data):
+    results = evaluate_model(model, test_data)
     return results
+
+
+# @task(name="EVAL", retries=0, retry_delay_seconds=15)
+def eval(model, infer_data, device, batch_size):
+    """Run the model on the given inference data (test, drifted, ...)"""
+    model = model.to(device)
+    predictions, losses, accuracies, true = predict(model, infer_data, device, batch_size)
+    return predictions, losses, accuracies, true
+
+def save_trial(trial:optuna.trial.Trial, objective):
+    number = str(trial.number)
+    text = str(trial.params)
+    now = datetime.now()
+    current_time = now.strftime("%Y-%m-%d_%H-%M-%S")
+    with open("results/trial_values.txt", "a") as f:
+        f.write(str(number) + "-" + str(text) + " " + str(current_time) + " " + str(objective) + '\n')
 
 def plot_losses(history, results):
     fig, axs = plt.subplots(2,2)
@@ -67,41 +102,106 @@ def plot_losses(history, results):
 
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d_%H-%M-%S")
-
+    # fig.savefig("models/graphs/input_vs_output/" + str(model_name) + "_" + str(type_layers) + "/curves_" + current_time + "_" + str(model_name) + "_" + str(type_layers) +  ".jpg")
     fig.savefig("results/graphs/curves_" + current_time +  ".jpg")
     plt.close(fig)
 
-def hyper_tune_flow():
+def hyper_tune_flow(trial:optuna.trial):
+    mlflow.pytorch.autolog(disable=True)
+    with mlflow.start_run(nested=True, log_system_metrics=False):
+        # fixed variables
+        device = device_allocation()
+        epochs = 50
+        batch_size = 8
+            
+        # dynamic varibales, chosen by optuna
+        n_layers = trial.suggest_int("n_layers", 2, 10)  
+        learning_rate = trial.suggest_float("learning_rate", 0.00001, 0.0005)
+        dimensions = []
+        for i in range(n_layers):
+            embedding = trial.suggest_int(f"hidden_dim_{i}", 2, 99)
+            dimensions.append(embedding)
 
-    device = device_allocation()
-    epochs = 50
-    batch_size = 8
-        
-    n_layers = 3
-    learning_rate = 0.0001
-    dimensions = [24, 16, 4]
+        # save all parameters in dictionaries
+        model_params = {
+            "n_layers": int(n_layers),
+            "dimensions": dimensions,
+        }
+        train_params = {
+            "learning_rate": learning_rate,
+            "epochs": epochs,
+            "batch_size": batch_size,
+        }
 
-    model_params = {
-        "n_layers": int(n_layers),
-        "dimensions": dimensions,
-    }
-    train_params = {
-        "learning_rate": learning_rate,
-        "epochs": epochs,
-        "batch_size": batch_size,
-    }
+        print("train model")
+        try:
+            all_data = data(train_params["batch_size"])
+            model = NN_model(model_params)
 
-    print("train model")
+            # set up mlflow experiment
+            mlflow.log_params(train_params)
+            mlflow.log_params(model_params)
+            model, history = train(model, device, all_data.train_dataloader, all_data.val_dataloader, train_params, trial)
+            results = predict(model, all_data.test_dataloader)
+            metrics_test = {
+                "acc_test": np.mean(results["test_loss"]),
+                "loss_test": np.mean(results["test_acc"])
+            }
+            mlflow.log_metrics(metrics_test)
+            plot_losses(history, results)
+            best_val = min(history["val_loss"])
+            save_trial(trial, best_val)
 
-    all_data = data(train_params["batch_size"])
-    model = NN_model(model_params)
+        except ValueError as e:
+            error = f"Error encountered in training: {e}. Pruning this trial."
+            print(error)
+            save_trial(trial, error)
+            raise optuna.exceptions.TrialPruned()
+    return best_val   
 
-    model, history = train(model, device, all_data.train_dataloader, all_data.val_dataloader, train_params)
-    results = predict(model, all_data.test_dataloader, device)
-    plot_losses(history, results)
-    best_val = min(history["val_loss"])
-    print("best validation loss: " + str(best_val)) 
+def get_or_create_experiment(experiment_name:str):
+    if experiment := mlflow.get_experiment_by_name(experiment_name):
+      return experiment.experiment_id
+    else:
+      return mlflow.create_experiment(experiment_name)
+
 
 if __name__ == '__main__':
-    hyper_tune_flow()
-        
+    mlflow.set_tracking_uri(uri="http://127.0.0.1:8080")
+    # mlflow.set_tracking_uri(uri="http://0.0.0.0:8080") (via ssh)
+    exp_id = get_or_create_experiment("MLOps4ECM")
+    mlflow.set_experiment(experiment_id=exp_id)
+    with mlflow.start_run(experiment_id=exp_id, run_name="Neural_Network", nested=True):
+        study_name = "Neural_Network"
+        study = optuna.create_study(
+            study_name=study_name,
+            direction="minimize", 
+            sampler = optuna.samplers.TPESampler()
+            )
+        study.optimize(hyper_tune_flow, n_trials=3, callbacks=[champion_callback] )
+        best_trial = study.best_trial
+        best_params = {}
+        dimensions = []
+        print("best trial: " + str(best_trial.value))
+        for key, value in best_trial.params.items():
+            print("     {}: {}".format(key, value))
+            if key == "n_layers":
+                best_params["n_layers"] = value
+            if "hidden_dim" in key:
+                dimensions.append(value)
+        best_params["dimensions"] = dimensions
+        mlflow.log_metric("best_loss", study.best_value)
+        mlflow.log_params(study.best_params)
+        fig1 = optuna.visualization.matplotlib.plot_optimization_history(study)
+        fig2 = optuna.visualization.matplotlib.plot_param_importances(study)
+
+        mlflow.log_figure(figure=fig1.figure, artifact_file="optimization_history.png")
+        mlflow.log_figure(figure=fig2.figure, artifact_file="parameter_importance.png")
+        save_dir = "model_params/" 
+
+        model = NN_model(best_params)
+        best_model_file = os.path.join(save_dir, '{}-{:.4f}-full_model.pth'.format(best_trial._trial_id, study.best_value))
+        model.load_state_dict(torch.load(best_model_file, weights_only=True))
+        mlflow.pytorch.log_model(model, "model")
+        artifact_path = "model"
+        model_uri = mlflow.get_artifact_uri(artifact_path)
