@@ -22,12 +22,12 @@ class Data_utils(object):
         self.cur_dataloader = None
 
     def split_data(self):
-        data = pd.read_csv("dataset/water_potability.csv", index_col=None)
+        data = pd.read_csv("data/water_potability.csv", index_col=None)
         # Split data depending on hardness in reference and current data
         data_reference = data.loc[(data['Hardness'] <= 186) ]
         data_current = data.loc[(data['Hardness'] > 186)]
-        data_reference.to_csv('dataset/dataset_reference_Evidently.csv', sep=',', encoding='utf-8')
-        data_current.to_csv('dataset/dataset_current_Evidently.csv', sep=',', encoding='utf-8')
+        data_reference.to_csv('data/dataset_reference.csv', sep=',', encoding='utf-8')
+        data_current.to_csv('data/dataset_current.csv', sep=',', encoding='utf-8')
         return data_reference
 
 
@@ -58,6 +58,7 @@ class Data_utils(object):
 
         # tensor_labels = torch.cat((tensor_labels_1,tensor_labels_2), -1)
 
+
         return tensor_values, tensor_labels
 
     def create_dataloader(self, data, labels, batch_size):
@@ -66,25 +67,38 @@ class Data_utils(object):
         return data_loader
 
     def load_train_data(self, batch_size):
-        existing_data = os.listdir("dataset/")
-        if "dataset_reference_Evidently.csv" in existing_data:
-            data_reference = pd.read_csv("dataset/dataset_reference_Evidently.csv", index_col=None)
+        existing_data = os.listdir("data/")
+        if "dataset_reference_.csv" in existing_data:
+            data_reference = pd.read_csv("data/dataset_reference.csv", index_col=None)
         else:
             data_reference = self.split_data()
-        print(len(data_reference))
+
         # replace NaN data with mean of the column
         data_reference = self.data_cleaning(data_reference)    
-        train_values, train_labels = self.pandas_to_tensor(data_reference)
+
+        train_set, rest_set = train_test_split(data_reference, test_size=0.2)
+        val_set, test_set = train_test_split(rest_set, test_size=0.5)
+
+        train_values, train_labels = self.pandas_to_tensor(train_set)
+        val_values, val_labels = self.pandas_to_tensor(val_set)
+        test_values, test_labels = self.pandas_to_tensor(test_set)
 
         self.train_dataloader = self.create_dataloader(train_values, train_labels, batch_size)
+        self.val_dataloader = self.create_dataloader(val_values, val_labels, batch_size)
+        self.test_dataloader = self.create_dataloader(test_values, test_labels, batch_size)
+
         self.train_data = [train_values, train_labels]
+        self.val_data = [val_values, val_labels]
+        self.test_data = [test_values, test_labels]
 
     def load_test_data(self, batch_size):
     
-        data_current = pd.read_csv("dataset/dataset_current_Evidently.csv", index_col=None)
+        data_current = pd.read_csv("data/dataset_current.csv", index_col=None)
+
         data_current = self.data_cleaning(data_current)
-        
+
         cur_values, cur_labels = self.pandas_to_tensor(data_current)
+
         self.cur_dataloader = self.create_dataloader(cur_values, cur_labels, batch_size)
 
         self.cur_data = [cur_values, cur_labels]
