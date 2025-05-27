@@ -4,7 +4,7 @@
 /Data_results/datasets/
 /Model_results/data/
 /Monitoring_results/dataset/
-/environment
+/environment/
 
 /Model_results/mlruns/
 /Model/model_params/
