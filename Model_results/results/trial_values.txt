@@ -1,8 +1,0 @@
-0-{'n_layers': 4, 'learning_rate': 0.00030147504559929837, 'hidden_dim_0': 9, 'hidden_dim_1': 92, 'hidden_dim_2': 28, 'hidden_dim_3': 77} 2025-05-27_15-19-47 0.5853883306185405
-0-{'n_layers': 8, 'learning_rate': 0.0004368591704693809, 'hidden_dim_0': 93, 'hidden_dim_1': 67, 'hidden_dim_2': 38, 'hidden_dim_3': 40, 'hidden_dim_4': 89, 'hidden_dim_5': 15, 'hidden_dim_6': 65, 'hidden_dim_7': 53} 2025-05-27_15-29-19 0.6523747503757477
-0-{'n_layers': 2, 'learning_rate': 0.00017561146220423826, 'hidden_dim_0': 58, 'hidden_dim_1': 22} 2025-05-27_15-30-47 0.6600438078244527
-1-{'n_layers': 9, 'learning_rate': 0.0004662866552796496, 'hidden_dim_0': 74, 'hidden_dim_1': 12, 'hidden_dim_2': 27, 'hidden_dim_3': 24, 'hidden_dim_4': 79, 'hidden_dim_5': 34, 'hidden_dim_6': 23, 'hidden_dim_7': 30, 'hidden_dim_8': 2} 2025-05-27_15-31-04 0.663044144709905
-2-{'n_layers': 3, 'learning_rate': 0.0004607268464930499, 'hidden_dim_0': 84, 'hidden_dim_1': 14, 'hidden_dim_2': 40} 2025-05-27_15-31-14 0.6144665916760762
-0-{'n_layers': 5, 'learning_rate': 0.00019895456770105605, 'hidden_dim_0': 42, 'hidden_dim_1': 52, 'hidden_dim_2': 17, 'hidden_dim_3': 11, 'hidden_dim_4': 49} 2025-05-27_15-32-02 0.6571688413619995
-1-{'n_layers': 6, 'learning_rate': 0.0004668196656874909, 'hidden_dim_0': 73, 'hidden_dim_1': 67, 'hidden_dim_2': 88, 'hidden_dim_3': 15, 'hidden_dim_4': 29, 'hidden_dim_5': 86} 2025-05-27_15-32-19 0.6684870143731435
-2-{'n_layers': 6, 'learning_rate': 0.00048820714423209436, 'hidden_dim_0': 18, 'hidden_dim_1': 79, 'hidden_dim_2': 60, 'hidden_dim_3': 33, 'hidden_dim_4': 2, 'hidden_dim_5': 33} 2025-05-27_15-32-35 0.6851808627446493
