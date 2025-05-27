@@ -26,8 +26,8 @@ class Data_utils(object):
         # Split data depending on hardness in reference and current data
         data_reference = data.loc[(data['Hardness'] <= 186) ]
         data_current = data.loc[(data['Hardness'] > 186)]
-        data_reference.to_csv('dataset/dataset_reference.csv', sep=',', encoding='utf-8')
-        data_current.to_csv('dataset/dataset_current.csv', sep=',', encoding='utf-8')
+        data_reference.to_csv('dataset/dataset_reference_Evidently.csv', sep=',', encoding='utf-8')
+        data_current.to_csv('dataset/dataset_current_Evidently.csv', sep=',', encoding='utf-8')
         return data_reference
 
 
@@ -68,7 +68,7 @@ class Data_utils(object):
     def load_train_data(self, batch_size):
         existing_data = os.listdir("dataset/")
         if "dataset_reference.csv" in existing_data:
-            data_reference = pd.read_csv("dataset/dataset_reference.csv", index_col=None)
+            data_reference = pd.read_csv("dataset/dataset_reference_Evidently.csv", index_col=None)
         else:
             data_reference = self.split_data()
         print(len(data_reference))
@@ -81,7 +81,7 @@ class Data_utils(object):
 
     def load_test_data(self, batch_size):
     
-        data_current = pd.read_csv("dataset/dataset_current.csv", index_col=None)
+        data_current = pd.read_csv("dataset/dataset_current_Evidently.csv", index_col=None)
         data_current = self.data_cleaning(data_current)
         
         cur_values, cur_labels = self.pandas_to_tensor(data_current)
